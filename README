@@ -8,9 +8,14 @@ a pro zálohu konfigurace Klipperu na USB.
 
 !! POZOR !!
 
-USB Flash nepoužívejte pěhem tisku.
-Dojde k přepsání nebo smazání souboru se stejným jménem
-který se právě tiskne.
+Skript sám pozná probíhající tisk (pres Moonraker). Když se tiskne,
+ostatní gcody se normálně zkopírují/přesunou, ale právě tištěný
+soubor se NIKDY nepřepíše ani neodstěhuje - při exportu se ponechá,
+při importu se přeskočí soubor stejného jména.
+Záloha (config+database) je bezpečná i během tisku.
+
+Pokud Moonraker není dostupný, ochrana se neuplatní - potom
+platí puvodní doporučení: USB během tisku raději nepoužívej.
 
 
 Funkce
@@ -42,6 +47,27 @@ Nastavení
 Cestu k "printer_data" není potřeba nastavovat - skript ji najde
 sám (očekává standardní rozložení Klipperu /home/<uživatel>/printer_data,
 funguje tedy pro pi, biqu, mks apod.).
+
+
+Hlášení na displeji / v konzoli
+===============================
+
+Po zasunutí USB skript průběžně hlásí, co dělá:
+na displeji tiskárny (M117) a v konzoli Mainsailu/Fluiddu
+(RESPOND MSG=). Uvidíš např.:
+   KUSBH: USB detekovan
+   KUSBH: import 3 souboru
+   KUSBH: export 2 (tisk chranen)
+   KUSBH: hotovo, muzes vyjmout USB
+
+RESPOND vyžaduje v konfiguraci Klipperu sekci [respond].
+Pokud ji nemáš (v konzoli by se objevilo "Unknown command
+RESPOND"), otevři soubor "mountcopy" a nastav:
+   USE_RESPOND=0
+Zůstane jen zobrazení na displeji (M117).
+Zpráva na displeji (M117) se po 10 s automaticky smaže; čas
+změníš proměnnou CLEAR_AFTER v souboru "mountcopy" (0 = nemazat).
+Hlášení lze úplně vypnout nastavením NOTIFY=0.
 
 
 Instalace z GitHubu (ve stylu KIAUH)

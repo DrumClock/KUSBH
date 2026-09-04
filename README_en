@@ -8,9 +8,14 @@ and to back up the Klipper configuration to USB.
 
 !! WARNING !!
 
-Do not use the USB flash drive while printing.
-A file with the same name as the one being printed could be
-overwritten or deleted.
+The script detects a running print (via Moonraker). While printing,
+the other gcode files are still copied/moved normally, but the file
+currently being printed is NEVER overwritten or moved - on export it
+is kept, on import a file with the same name is skipped.
+Backup (config+database) is safe to run even during a print.
+
+If Moonraker is unreachable the protection cannot apply - then the
+original advice holds: avoid using the USB drive while printing.
 
 
 Features
@@ -42,6 +47,27 @@ Configuration
 You do NOT need to set the path to "printer_data" - the script
 finds it automatically (it expects Klipper's standard layout
 /home/<user>/printer_data, so it works for pi, biqu, mks, etc.).
+
+
+Status messages (display / console)
+===================================
+
+After you insert the USB drive the script reports what it does,
+both on the printer display (M117) and in the Mainsail/Fluidd
+console (RESPOND MSG=). For example:
+   KUSBH: USB detekovan
+   KUSBH: import 3 souboru
+   KUSBH: export 2 (tisk chranen)
+   KUSBH: hotovo, muzes vyjmout USB
+
+RESPOND requires the [respond] section in your Klipper config.
+If you don't have it (console shows "Unknown command RESPOND"),
+open the "mountcopy" file and set:
+   USE_RESPOND=0
+Only the display message (M117) will be used.
+The display message (M117) is cleared automatically after 10 s;
+change the delay via CLEAR_AFTER in the "mountcopy" file (0 = keep).
+Notifications can be disabled entirely with NOTIFY=0.
 
 
 Install from GitHub (KIAUH style)

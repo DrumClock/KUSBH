@@ -6,6 +6,18 @@ export PATH=/bin:/usr/bin
 # CONSTANTS
 PATTERN="*.gcode"
 
+# Moonraker address (used to detect prints and to show status messages).
+MOONRAKER_URL="http://localhost:7125"
+
+# Notifications shown when you insert the USB drive.
+#   NOTIFY=1       -> send messages at all
+#   USE_RESPOND=1  -> also print to the console (needs [respond] in Klipper config);
+#                     set to 0 if you get "Unknown command RESPOND".
+NOTIFY=1
+USE_RESPOND=1
+# Clear the M117 display message this many seconds after finishing (0 = keep it).
+CLEAR_AFTER=10
+
 # Auto-detect printer_data.
 # Klipper's standard layout is /home/<user>/printer_data, so we look there.
 # This works for Raspberry Pi (pi), BIQU CB1 (biqu), MKS, etc. without any manual setup.
@@ -13,7 +25,6 @@ PRINTER_DATA=""
 for d in /home/*/printer_data; do
     [ -d "$d" ] || continue
     PRINTER_DATA="$d"
-    # Prefer the one that actually contains a Klipper config folder.
     [ -d "$d/config" ] && break
 done
 
@@ -24,6 +35,51 @@ fi
 
 # Folder with print files (gcodes) inside printer_data.
 DESTINATION="${PRINTER_DATA}/gcodes"
+
+
+# Send a short status message to the printer's display (M117) and, optionally,
+# to the console (RESPOND MSG=). Best-effort: never blocks or fails the script.
+# Keep messages ASCII (no diacritics) and short so they fit a basic LCD.
+notify() {
+    [ "$NOTIFY" = "1" ] || return 0
+    _m=$1
+    if [ "$USE_RESPOND" = "1" ]; then
+        _data=$(printf '{"script":"M117 %s\\nRESPOND MSG=\\"%s\\""}' "$_m" "$_m")
+    else
+        _data=$(printf '{"script":"M117 %s"}' "$_m")
+    fi
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsS -m 5 -X POST "${MOONRAKER_URL}/printer/gcode/script" \
+             -H 'Content-Type: application/json' --data "$_data" >/dev/null 2>&1 || true
+    elif command -v wget >/dev/null 2>&1; then
+        wget -qO- --timeout=5 --header='Content-Type: application/json' \
+             --post-data="$_data" "${MOONRAKER_URL}/printer/gcode/script" >/dev/null 2>&1 || true
+    fi
+}
+
+# Clear the printer display (M117) after CLEAR_AFTER seconds. Best-effort.
+clear_display() {
+    [ "$NOTIFY" = "1" ] || return 0
+    case "$CLEAR_AFTER" in ''|*[!0-9]*) return 0 ;; esac
+    [ "$CLEAR_AFTER" -gt 0 ] || return 0
+    sleep "$CLEAR_AFTER"
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsS -m 5 -X POST "${MOONRAKER_URL}/printer/gcode/script" \
+             -H 'Content-Type: application/json' --data '{"script":"M117 "}' >/dev/null 2>&1 || true
+    elif command -v wget >/dev/null 2>&1; then
+        wget -qO- --timeout=5 --header='Content-Type: application/json' \
+             --post-data='{"script":"M117 "}' "${MOONRAKER_URL}/printer/gcode/script" >/dev/null 2>&1 || true
+    fi
+}
+
+# Ask Moonraker for the current print state. Echoes the raw JSON (may be empty).
+fetch_print_stats() {
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsS -m 5 "${MOONRAKER_URL}/printer/objects/query?print_stats" 2>/dev/null
+    elif command -v wget >/dev/null 2>&1; then
+        wget -qO- --timeout=5 "${MOONRAKER_URL}/printer/objects/query?print_stats" 2>/dev/null
+    fi
+}
 
 
 # The block device name is expected to be passed as the first argument.
@@ -46,38 +102,91 @@ umask 0111
 # Clean log file
 echo "" > /tmp/mountcopy.log
 
+# Immediate feedback that the drive was noticed.
+notify "KUSBH: USB detekovan"
+
+# --- Figure out whether a print is running and which file it is. --------------
+PSTATS=$(fetch_print_stats)
+PSTATS_NS=$(printf '%s' "$PSTATS" | tr -d ' \n\t')
+PFILE=$(printf '%s' "$PSTATS" | sed -n 's/.*"filename"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+PBASE=$(basename "$PFILE" 2>/dev/null)
+
+PRINTING=0
+if [ -n "$PSTATS" ]; then
+    case "$PSTATS_NS" in
+        *'"state":"printing"'*|*'"state":"paused"'*) PRINTING=1 ;;
+    esac
+fi
+
 # Determine what to do based on the content of the USB drive.
 if [ -d "${mnt}/backup" ]; then
-    # BACKUP FOLDER FOUND -> we back up the Klipper config and database to the USB drive.
+    # BACKUP FOLDER FOUND -> back up config and database (safe even during a print).
     echo "Backing up..." >>/tmp/mountcopy.log
-    # Each backup goes into its own timestamped subfolder so nothing is overwritten.
+    notify "KUSBH: zaloha config+db"
     stamp=$(date +%Y-%m-%d_%H-%M-%S)
     target="${mnt}/backup/${stamp}"
-    mkdir -p "$target" 2>>/tmp/mountcopy.log || exit 110
-    # Copy only the important folders (config = printer.cfg etc., database = moonraker DB).
-    # Add more items to the list if you want to back up something else too.
+    mkdir -p "$target" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba zalohy"; exit 110; }
     for item in config database; do
         if [ -e "${PRINTER_DATA}/${item}" ]; then
-            cp -a "${PRINTER_DATA}/${item}" "$target/" 2>>/tmp/mountcopy.log || exit 111
+            cp -a "${PRINTER_DATA}/${item}" "$target/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba zalohy"; exit 111; }
         fi
     done
-    # Make sure all data is physically written to the USB drive before unmounting.
     sync
+    notify "KUSBH: zaloha hotova"
 
 elif [ -z "$(ls $(echo "${mnt}/${PATTERN}"))" ]; then
-    # NO FILES, WE EXPORT
-    echo "Exporting..." >>/tmp/mountcopy.log
-    # Copy files fitting $PATTERN from the $DESTINATION to the root of the drive.
-    mv $(echo "${DESTINATION}/${PATTERN}") "$mnt/" 2>>/tmp/mountcopy.log || exit 105
+    # NO FILES ON USB, WE EXPORT (move gcodes from the printer onto the drive).
+    n=0
+    if [ "$PRINTING" -eq 1 ]; then
+        echo "Exporting (print active, keeping '${PBASE}')..." >>/tmp/mountcopy.log
+        notify "KUSBH: export (tisk chranen)"
+        for f in ${DESTINATION}/${PATTERN}; do
+            [ -e "$f" ] || continue
+            [ "$(basename "$f")" = "$PBASE" ] && continue
+            mv "$f" "$mnt/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba exportu"; exit 105; }
+            n=$((n + 1))
+        done
+        notify "KUSBH: export ${n} (tisk chranen)"
+    else
+        echo "Exporting..." >>/tmp/mountcopy.log
+        n=$(ls -1 $(echo "${DESTINATION}/${PATTERN}") 2>/dev/null | wc -l)
+        notify "KUSBH: export ${n} souboru"
+        mv $(echo "${DESTINATION}/${PATTERN}") "$mnt/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba exportu"; exit 105; }
+        notify "KUSBH: export hotov (${n})"
+    fi
 
 else
-    # FILES FOUND, WE IMPORT
-    echo "Importing..." >>/tmp/mountcopy.log
-    # Copy files fitting $PATTERN from the root of the drive to $DESTINATION.
-    cp $(echo "$mnt/$PATTERN") "$DESTINATION/" 2>>/tmp/mountcopy.log || exit 102
+    # FILES FOUND ON USB, WE IMPORT (copy gcodes from the drive into the printer).
+    n=0
+    if [ "$PRINTING" -eq 1 ]; then
+        echo "Importing (print active, skipping '${PBASE}')..." >>/tmp/mountcopy.log
+        notify "KUSBH: import (tisk chranen)"
+        for f in ${mnt}/${PATTERN}; do
+            [ -e "$f" ] || continue
+            if [ "$(basename "$f")" = "$PBASE" ]; then
+                echo "  skipped (would overwrite printed file): $(basename "$f")" >>/tmp/mountcopy.log
+                continue
+            fi
+            cp "$f" "$DESTINATION/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba importu"; exit 102; }
+            n=$((n + 1))
+        done
+        notify "KUSBH: import ${n} (tisk chranen)"
+    else
+        echo "Importing..." >>/tmp/mountcopy.log
+        n=$(ls -1 $(echo "${mnt}/${PATTERN}") 2>/dev/null | wc -l)
+        notify "KUSBH: import ${n} souboru"
+        cp $(echo "$mnt/$PATTERN") "$DESTINATION/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba importu"; exit 102; }
+        notify "KUSBH: import hotov (${n})"
+    fi
 fi
 
 # Unmount the drives filesystem
 umount "$mnt" 2>>/tmp/mountcopy.log || exit 103
 # Remove temporary mount directory
 rmdir "$mnt" 2>>/tmp/mountcopy.log || exit 104
+
+# Final feedback that the drive can be removed.
+notify "KUSBH: hotovo, muzes vyjmout USB"
+
+# Leave the message up for a moment, then clear the display.
+clear_display
