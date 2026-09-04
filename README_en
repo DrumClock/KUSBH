@@ -1,0 +1,84 @@
+
+KUSBH - Klipper USB Helper
+==========================
+
+A small helper to move gcode between a USB flash drive and Klipper,
+and to back up the Klipper configuration to USB.
+
+
+!! WARNING !!
+
+Do not use the USB flash drive while printing.
+A file with the same name as the one being printed could be
+overwritten or deleted.
+
+
+Features
+========
+
+1. COPY  - inserting a USB drive containing one or more "gcode" files
+   copies them into the print folder.
+
+2. MOVE  - inserting an empty USB drive moves all "gcode" files
+   from the print folder onto the drive.
+
+3. BACKUP - inserting a USB drive that contains a "backup" folder
+   backs up the Klipper configuration (config) and database
+   (database) onto the drive. Each backup goes into its own
+   timestamped subfolder, so previous backups are never
+   overwritten:
+       backup/2025-09-04_19-33-01/
+
+   If a "backup" folder is present, ONLY the backup runs
+   (gcode import/export is skipped).
+
+   To back up more, add the folder name to the
+   "for item in config database" list in the "mountcopy" file.
+
+
+Configuration
+=============
+
+You do NOT need to set the path to "printer_data" - the script
+finds it automatically (it expects Klipper's standard layout
+/home/<user>/printer_data, so it works for pi, biqu, mks, etc.).
+
+
+Install from GitHub (KIAUH style)
+=================================
+
+One command (downloads the repo and launches the menu):
+
+   bash <(curl -fsSL https://raw.githubusercontent.com/drumclock/KUSBH/main/bootstrap.sh)
+
+Or the classic way:
+
+   cd ~
+   git clone https://github.com/drumclock/KUSBH.git
+   ./KUSBH/install.sh
+
+
+Menu (install.sh)
+=================
+
+   1) Install
+   2) Uninstall
+   3) Update  (git pull)
+   4) Status
+
+
+Manual install
+==============
+
+1. sudo cp 99-mountcopy.rules /etc/udev/rules.d/
+2. sudo cp mountcopy /usr/bin
+   sudo chmod +x /usr/bin/mountcopy
+3. sudo udevadm control --reload-rules && sudo udevadm trigger
+
+
+Manual uninstall
+================
+
+1. sudo rm /etc/udev/rules.d/99-mountcopy.rules
+2. sudo rm /usr/bin/mountcopy
+3. sudo udevadm control --reload-rules && sudo udevadm trigger

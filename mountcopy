@@ -1,0 +1,83 @@
+#!/bin/sh
+
+export PATH=/bin:/usr/bin
+
+
+# CONSTANTS
+PATTERN="*.gcode"
+
+# Auto-detect printer_data.
+# Klipper's standard layout is /home/<user>/printer_data, so we look there.
+# This works for Raspberry Pi (pi), BIQU CB1 (biqu), MKS, etc. without any manual setup.
+PRINTER_DATA=""
+for d in /home/*/printer_data; do
+    [ -d "$d" ] || continue
+    PRINTER_DATA="$d"
+    # Prefer the one that actually contains a Klipper config folder.
+    [ -d "$d/config" ] && break
+done
+
+if [ -z "$PRINTER_DATA" ]; then
+    echo "printer_data not found!" >>/tmp/mountcopy.log
+    exit 107
+fi
+
+# Folder with print files (gcodes) inside printer_data.
+DESTINATION="${PRINTER_DATA}/gcodes"
+
+
+# The block device name is expected to be passed as the first argument.
+device="$1"
+
+if [ -z "$device" ]; then
+    echo "Missing block device name!" >>/tmp/mountcopy.log
+    exit 1
+fi
+
+# Temporary directory where we will mount the filesystem
+mnt=$(mktemp -d)
+# Strange error codes are for debugging purposes.
+# Mount device into filesystem at $destination.
+mount "/dev/$device" "$mnt" 2>>/tmp/mountcopy.log || exit 106
+
+# The copied files will belong to root, but we will grant all permissions to other users.
+umask 0111
+
+# Clean log file
+echo "" > /tmp/mountcopy.log
+
+# Determine what to do based on the content of the USB drive.
+if [ -d "${mnt}/backup" ]; then
+    # BACKUP FOLDER FOUND -> we back up the Klipper config and database to the USB drive.
+    echo "Backing up..." >>/tmp/mountcopy.log
+    # Each backup goes into its own timestamped subfolder so nothing is overwritten.
+    stamp=$(date +%Y-%m-%d_%H-%M-%S)
+    target="${mnt}/backup/${stamp}"
+    mkdir -p "$target" 2>>/tmp/mountcopy.log || exit 110
+    # Copy only the important folders (config = printer.cfg etc., database = moonraker DB).
+    # Add more items to the list if you want to back up something else too.
+    for item in config database; do
+        if [ -e "${PRINTER_DATA}/${item}" ]; then
+            cp -a "${PRINTER_DATA}/${item}" "$target/" 2>>/tmp/mountcopy.log || exit 111
+        fi
+    done
+    # Make sure all data is physically written to the USB drive before unmounting.
+    sync
+
+elif [ -z "$(ls $(echo "${mnt}/${PATTERN}"))" ]; then
+    # NO FILES, WE EXPORT
+    echo "Exporting..." >>/tmp/mountcopy.log
+    # Copy files fitting $PATTERN from the $DESTINATION to the root of the drive.
+    mv $(echo "${DESTINATION}/${PATTERN}") "$mnt/" 2>>/tmp/mountcopy.log || exit 105
+
+else
+    # FILES FOUND, WE IMPORT
+    echo "Importing..." >>/tmp/mountcopy.log
+    # Copy files fitting $PATTERN from the root of the drive to $DESTINATION.
+    cp $(echo "$mnt/$PATTERN") "$DESTINATION/" 2>>/tmp/mountcopy.log || exit 102
+fi
+
+# Unmount the drives filesystem
+umount "$mnt" 2>>/tmp/mountcopy.log || exit 103
+# Remove temporary mount directory
+rmdir "$mnt" 2>>/tmp/mountcopy.log || exit 104
