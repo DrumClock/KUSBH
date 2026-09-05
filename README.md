@@ -13,8 +13,8 @@
 
 ## ✨ Funkce
 
-- **📥 Import** — vložíš USB s `*.gcode` → soubory se zkopírují do tiskové složky.
-- **📤 Export** — vložíš prázdný USB → všechny `*.gcode` se přesunou z tiskárny na USB.
+- **📥 Kopírování (COPY)** — vložíš USB s `*.gcode` → soubory se **zkopírují** do tiskové složky.
+- **📤 Přesun (MOVE)** — vložíš prázdný USB → všechny `*.gcode` se **přesunou** z tiskárny na USB.
 - **💾 Záloha** — vložíš USB se složkou `backup` → zazálohuje se `config` a `database`
   do podsložky s datem a časem (staré zálohy se nepřepisují).
 - **🛡️ Ochrana tisku** — když se tiskne, ostatní soubory se přenesou normálně, ale
@@ -59,7 +59,7 @@ Na USB vytvoř složku `backup` a disk zasuň. Zálohy se ukládají takto:
 backup/2025-09-04_19-33-01/
 ```
 
-Když je na USB složka `backup`, provede se **jen záloha** (import/export G-code se přeskočí).
+Když je na USB složka `backup`, provede se **jen záloha** (kopírování/přesun G-code se přeskočí).
 Které složky se zálohují si vybereš **při instalaci** (nebo kdykoli přes
 menu → *Složky pro zálohu*). Instalátor nabídne složky, které v `printer_data`
 reálně existují; výběr se uloží do `/etc/kusbh.conf` (`BACKUP_ITEMS`).
@@ -71,8 +71,8 @@ Po zasunutí USB uvidíš průběh, např.:
 
 ```text
 KUSBH: USB detekovan
-KUSBH: import 3 souboru
-KUSBH: export 2 (tisk chranen)
+KUSBH: kopiruji 3 souboru
+KUSBH: presun 2 (tisk chranen)
 KUSBH: hotovo, muzes vyjmout USB
 ```
 
@@ -129,8 +129,8 @@ k přepsání nebo smazání tištěného souboru.
 
 ## ✨ Features
 
-- **📥 Import** — insert a USB with `*.gcode` → files are copied into the print folder.
-- **📤 Export** — insert an empty USB → all `*.gcode` are moved from the printer onto it.
+- **📥 Copy (COPY)** — insert a USB with `*.gcode` → files are **copied** into the print folder.
+- **📤 Move (MOVE)** — insert an empty USB → all `*.gcode` are **moved** from the printer onto it.
 - **💾 Backup** — insert a USB containing a `backup` folder → `config` and `database`
   are backed up into a timestamped subfolder (old backups are never overwritten).
 - **🛡️ Print protection** — while printing, other files transfer normally, but the
@@ -173,7 +173,7 @@ Create a `backup` folder on the USB drive and plug it in. Backups are stored as:
 backup/2025-09-04_19-33-01/
 ```
 
-If a `backup` folder is present, **only** the backup runs (G-code import/export is skipped).
+If a `backup` folder is present, **only** the backup runs (G-code copy/move is skipped).
 You choose which folders are backed up **during install** (or anytime via the menu →
 *Backup folders*). The installer lists the folders that actually exist in `printer_data`;
 the choice is saved to `/etc/kusbh.conf` (`BACKUP_ITEMS`). Default is `config` + `database`.
@@ -184,8 +184,8 @@ After inserting the USB you will see progress, e.g.:
 
 ```text
 KUSBH: USB detekovan
-KUSBH: import 3 souboru
-KUSBH: export 2 (tisk chranen)
+KUSBH: kopiruji 3 souboru
+KUSBH: presun 2 (tisk chranen)
 KUSBH: hotovo, muzes vyjmout USB
 ```
 

@@ -140,48 +140,48 @@ if [ -d "${mnt}/backup" ]; then
     notify "KUSBH: zaloha hotova"
 
 elif [ -z "$(ls $(echo "${mnt}/${PATTERN}"))" ]; then
-    # NO FILES ON USB, WE EXPORT (move gcodes from the printer onto the drive).
+    # NO FILES ON USB, WE MOVE (move gcodes from the printer onto the drive).
     n=0
     if [ "$PRINTING" -eq 1 ]; then
-        echo "Exporting (print active, keeping '${PBASE}')..." >>/tmp/mountcopy.log
-        notify "KUSBH: export (tisk chranen)"
+        echo "Moving to USB (print active, keeping '${PBASE}')..." >>/tmp/mountcopy.log
+        notify "KUSBH: presun (tisk chranen)"
         for f in ${DESTINATION}/${PATTERN}; do
             [ -e "$f" ] || continue
             [ "$(basename "$f")" = "$PBASE" ] && continue
-            mv "$f" "$mnt/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba exportu"; exit 105; }
+            mv "$f" "$mnt/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba presunu"; exit 105; }
             n=$((n + 1))
         done
-        notify "KUSBH: export ${n} (tisk chranen)"
+        notify "KUSBH: presun ${n} (tisk chranen)"
     else
-        echo "Exporting..." >>/tmp/mountcopy.log
+        echo "Moving to USB..." >>/tmp/mountcopy.log
         n=$(ls -1 $(echo "${DESTINATION}/${PATTERN}") 2>/dev/null | wc -l)
-        notify "KUSBH: export ${n} souboru"
-        mv $(echo "${DESTINATION}/${PATTERN}") "$mnt/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba exportu"; exit 105; }
-        notify "KUSBH: export hotov (${n})"
+        notify "KUSBH: presouvam ${n} souboru"
+        mv $(echo "${DESTINATION}/${PATTERN}") "$mnt/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba presunu"; exit 105; }
+        notify "KUSBH: presun hotov (${n})"
     fi
 
 else
-    # FILES FOUND ON USB, WE IMPORT (copy gcodes from the drive into the printer).
+    # FILES FOUND ON USB, WE COPY (copy gcodes from the drive into the printer).
     n=0
     if [ "$PRINTING" -eq 1 ]; then
-        echo "Importing (print active, skipping '${PBASE}')..." >>/tmp/mountcopy.log
-        notify "KUSBH: import (tisk chranen)"
+        echo "Copying to printer (print active, skipping '${PBASE}')..." >>/tmp/mountcopy.log
+        notify "KUSBH: kopie (tisk chranen)"
         for f in ${mnt}/${PATTERN}; do
             [ -e "$f" ] || continue
             if [ "$(basename "$f")" = "$PBASE" ]; then
                 echo "  skipped (would overwrite printed file): $(basename "$f")" >>/tmp/mountcopy.log
                 continue
             fi
-            cp "$f" "$DESTINATION/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba importu"; exit 102; }
+            cp "$f" "$DESTINATION/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba kopirovani"; exit 102; }
             n=$((n + 1))
         done
-        notify "KUSBH: import ${n} (tisk chranen)"
+        notify "KUSBH: kopie ${n} (tisk chranen)"
     else
-        echo "Importing..." >>/tmp/mountcopy.log
+        echo "Copying to printer..." >>/tmp/mountcopy.log
         n=$(ls -1 $(echo "${mnt}/${PATTERN}") 2>/dev/null | wc -l)
-        notify "KUSBH: import ${n} souboru"
-        cp $(echo "$mnt/$PATTERN") "$DESTINATION/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba importu"; exit 102; }
-        notify "KUSBH: import hotov (${n})"
+        notify "KUSBH: kopiruji ${n} souboru"
+        cp $(echo "$mnt/$PATTERN") "$DESTINATION/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba kopirovani"; exit 102; }
+        notify "KUSBH: kopie hotova (${n})"
     fi
 fi
 
