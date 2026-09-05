@@ -1,0 +1,7 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Shell skripty musi mit vzdy LF konce radku, jinak se nespusti
+*.sh    text eol=lf
+mountcopy         text eol=lf
+99-mountcopy.rules text eol=lf
