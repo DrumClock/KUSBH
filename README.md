@@ -44,7 +44,8 @@ git clone https://github.com/drumclock/KUSBH.git
 1) Instalovat
 2) Odinstalovat
 3) Aktualizovat  (git pull)
-4) Stav
+4) Slozky pro zalohu
+5) Stav
 q) Konec
 ```
 
@@ -59,8 +60,10 @@ backup/2025-09-04_19-33-01/
 ```
 
 Když je na USB složka `backup`, provede se **jen záloha** (import/export G-code se přeskočí).
-Chceš zálohovat i něco dalšího? Přidej název složky do seznamu
-`for item in config database` v souboru `mountcopy`.
+Které složky se zálohují si vybereš **při instalaci** (nebo kdykoli přes
+menu → *Složky pro zálohu*). Instalátor nabídne složky, které v `printer_data`
+reálně existují; výběr se uloží do `/etc/kusbh.conf` (`BACKUP_ITEMS`).
+Výchozí je `config` + `database`.
 
 ## 💬 Hlášení na displeji / v konzoli
 
@@ -157,7 +160,8 @@ git clone https://github.com/drumclock/KUSBH.git
 1) Install
 2) Uninstall
 3) Update  (git pull)
-4) Status
+4) Backup folders
+5) Status
 q) Quit
 ```
 
@@ -170,6 +174,9 @@ backup/2025-09-04_19-33-01/
 ```
 
 If a `backup` folder is present, **only** the backup runs (G-code import/export is skipped).
+You choose which folders are backed up **during install** (or anytime via the menu →
+*Backup folders*). The installer lists the folders that actually exist in `printer_data`;
+the choice is saved to `/etc/kusbh.conf` (`BACKUP_ITEMS`). Default is `config` + `database`.
 
 ## 💬 Status messages
 

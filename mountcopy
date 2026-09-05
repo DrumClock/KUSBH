@@ -36,6 +36,11 @@ fi
 # Folder with print files (gcodes) inside printer_data.
 DESTINATION="${PRINTER_DATA}/gcodes"
 
+# Which printer_data folders go into a backup.
+# Default is config + database; the installer can change this via /etc/kusbh.conf.
+BACKUP_ITEMS="config database"
+[ -f /etc/kusbh.conf ] && . /etc/kusbh.conf
+
 
 # Send a short status message to the printer's display (M117) and, optionally,
 # to the console (RESPOND MSG=). Best-effort: never blocks or fails the script.
@@ -126,7 +131,7 @@ if [ -d "${mnt}/backup" ]; then
     stamp=$(date +%Y-%m-%d_%H-%M-%S)
     target="${mnt}/backup/${stamp}"
     mkdir -p "$target" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba zalohy"; exit 110; }
-    for item in config database; do
+    for item in $BACKUP_ITEMS; do
         if [ -e "${PRINTER_DATA}/${item}" ]; then
             cp -a "${PRINTER_DATA}/${item}" "$target/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba zalohy"; exit 111; }
         fi
