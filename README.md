@@ -33,13 +33,13 @@ sudo apt update && sudo apt install -y git
 **Krok 2** — stáhni KUSBH do domovské složky:
 
 ```bash
-git clone https://github.com/drumclock/KUSBH.git
+git clone https://github.com/drumclock/kusbh.git
 ```
 
 **Krok 3** — spusť KUSBH:
 
 ```bash
-./KUSBH/KUSBH.sh
+./kusbh/kusbh.sh
 ```
 
 **Krok 4** — teď jsi v hlavním menu. Akci vybereš zadáním jejího čísla.
@@ -47,10 +47,10 @@ git clone https://github.com/drumclock/KUSBH.git
 > 💡 **Rychlá varianta** — jedním příkazem (stáhne repozitář a rovnou spustí menu):
 >
 > ```bash
-> bash <(curl -fsSL https://raw.githubusercontent.com/drumclock/KUSBH/main/bootstrap.sh)
+> bash <(curl -fsSL https://raw.githubusercontent.com/drumclock/kusbh/main/bootstrap.sh)
 > ```
 
-## 🧭 Menu (`KUSBH.sh`)
+## 🧭 Menu (`kusbh.sh`)
 
 ```text
 1) Instalovat
@@ -161,13 +161,13 @@ sudo apt update && sudo apt install -y git
 **Step 2** — download KUSBH into your home directory:
 
 ```bash
-git clone https://github.com/drumclock/KUSBH.git
+git clone https://github.com/drumclock/kusbh.git
 ```
 
 **Step 3** — start KUSBH:
 
 ```bash
-./KUSBH/KUSBH.sh
+./kusbh/kusbh.sh
 ```
 
 **Step 4** — you should now be in the main menu. Choose an action by typing its number.
@@ -175,10 +175,10 @@ git clone https://github.com/drumclock/KUSBH.git
 > 💡 **Quick alternative** — one command (downloads the repo and launches the menu):
 >
 > ```bash
-> bash <(curl -fsSL https://raw.githubusercontent.com/drumclock/KUSBH/main/bootstrap.sh)
+> bash <(curl -fsSL https://raw.githubusercontent.com/drumclock/kusbh/main/bootstrap.sh)
 > ```
 
-## 🧭 Menu (`KUSBH.sh`)
+## 🧭 Menu (`kusbh.sh`)
 
 ```text
 1) Install

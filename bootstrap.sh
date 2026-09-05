@@ -4,19 +4,19 @@
 # Instalace z GitHubu (ve stylu KIAUH)
 #
 # Pouziti (jednim prikazem):
-#   bash <(curl -fsSL https://raw.githubusercontent.com/drumclock/KUSBH/main/bootstrap.sh)
+#   bash <(curl -fsSL https://raw.githubusercontent.com/drumclock/kusbh/main/bootstrap.sh)
 #
 # Nebo klasicky:
 #   cd ~
-#   git clone https://github.com/drumclock/KUSBH.git
-#   ./KUSBH/KUSBH.sh
+#   git clone https://github.com/drumclock/kusbh.git
+#   ./kusbh/kusbh.sh
 #
 
 set -u
 
-REPO_URL="https://github.com/drumclock/KUSBH.git"
+REPO_URL="https://github.com/drumclock/kusbh.git"
 BRANCH="main"
-TARGET_DIR="${HOME}/KUSBH"
+TARGET_DIR="${HOME}/kusbh"
 
 # --- Barvy -------------------------------------------------------------------
 C_RESET="\033[0m"; C_CYAN="\033[1;36m"; C_GREEN="\033[1;32m"
@@ -55,7 +55,7 @@ else
         printf "  ${C_RED}git clone selhal. Zkontroluj, ze repozitar existuje.${C_RESET}\n"; exit 1; }
 fi
 
-chmod +x "${TARGET_DIR}/KUSBH.sh" 2>/dev/null
+chmod +x "${TARGET_DIR}/kusbh.sh" 2>/dev/null
 
 echo ""
 printf "  ${C_GREEN}Hotovo. Spoustim menu...${C_RESET}\n"
@@ -63,7 +63,7 @@ sleep 1
 
 # Spustime menu. Presmerovani z /dev/tty zajisti interaktivitu i pri "curl | bash".
 if [ -e /dev/tty ]; then
-    exec bash "${TARGET_DIR}/KUSBH.sh" </dev/tty
+    exec bash "${TARGET_DIR}/kusbh.sh" </dev/tty
 else
-    exec bash "${TARGET_DIR}/KUSBH.sh"
+    exec bash "${TARGET_DIR}/kusbh.sh"
 fi
