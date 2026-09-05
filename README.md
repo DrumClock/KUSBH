@@ -24,21 +24,33 @@
 
 ## 🚀 Instalace z GitHubu (ve stylu KIAUH)
 
-Jedním příkazem (stáhne repozitář a rovnou spustí menu):
+**Krok 1** — nainstaluj `git` (pokud ho ještě nemáš):
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/drumclock/KUSBH/main/bootstrap.sh)
+sudo apt update && sudo apt install -y git
 ```
 
-Nebo klasicky:
+**Krok 2** — stáhni KUSBH do domovské složky:
 
 ```bash
-cd ~
 git clone https://github.com/drumclock/KUSBH.git
-./KUSBH/install.sh
 ```
 
-## 🧭 Menu (`install.sh`)
+**Krok 3** — spusť KUSBH:
+
+```bash
+./KUSBH/KUSBH.sh
+```
+
+**Krok 4** — teď jsi v hlavním menu. Akci vybereš zadáním jejího čísla.
+
+> 💡 **Rychlá varianta** — jedním příkazem (stáhne repozitář a rovnou spustí menu):
+>
+> ```bash
+> bash <(curl -fsSL https://raw.githubusercontent.com/drumclock/KUSBH/main/bootstrap.sh)
+> ```
+
+## 🧭 Menu (`KUSBH.sh`)
 
 ```text
 1) Instalovat
@@ -140,21 +152,33 @@ k přepsání nebo smazání tištěného souboru.
 
 ## 🚀 Install from GitHub (KIAUH style)
 
-One command (downloads the repo and launches the menu):
+**Step 1** — install `git` (if you don't have it yet):
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/drumclock/KUSBH/main/bootstrap.sh)
+sudo apt update && sudo apt install -y git
 ```
 
-Or the classic way:
+**Step 2** — download KUSBH into your home directory:
 
 ```bash
-cd ~
 git clone https://github.com/drumclock/KUSBH.git
-./KUSBH/install.sh
 ```
 
-## 🧭 Menu (`install.sh`)
+**Step 3** — start KUSBH:
+
+```bash
+./KUSBH/KUSBH.sh
+```
+
+**Step 4** — you should now be in the main menu. Choose an action by typing its number.
+
+> 💡 **Quick alternative** — one command (downloads the repo and launches the menu):
+>
+> ```bash
+> bash <(curl -fsSL https://raw.githubusercontent.com/drumclock/KUSBH/main/bootstrap.sh)
+> ```
+
+## 🧭 Menu (`KUSBH.sh`)
 
 ```text
 1) Install

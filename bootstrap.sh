@@ -9,7 +9,7 @@
 # Nebo klasicky:
 #   cd ~
 #   git clone https://github.com/drumclock/KUSBH.git
-#   ./KUSBH/install.sh
+#   ./KUSBH/KUSBH.sh
 #
 
 set -u
@@ -55,7 +55,7 @@ else
         printf "  ${C_RED}git clone selhal. Zkontroluj, ze repozitar existuje.${C_RESET}\n"; exit 1; }
 fi
 
-chmod +x "${TARGET_DIR}/install.sh" 2>/dev/null
+chmod +x "${TARGET_DIR}/KUSBH.sh" 2>/dev/null
 
 echo ""
 printf "  ${C_GREEN}Hotovo. Spoustim menu...${C_RESET}\n"
@@ -63,7 +63,7 @@ sleep 1
 
 # Spustime menu. Presmerovani z /dev/tty zajisti interaktivitu i pri "curl | bash".
 if [ -e /dev/tty ]; then
-    exec bash "${TARGET_DIR}/install.sh" </dev/tty
+    exec bash "${TARGET_DIR}/KUSBH.sh" </dev/tty
 else
-    exec bash "${TARGET_DIR}/install.sh"
+    exec bash "${TARGET_DIR}/KUSBH.sh"
 fi
