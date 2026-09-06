@@ -14,7 +14,7 @@
 ## ✨ Funkce
 
 - **📥 Kopírování (COPY)** — vložíš USB s `*.gcode` → soubory se **zkopírují** do tiskové složky.
-- **📤 Přesun (MOVE)** — vložíš prázdný USB → všechny `*.gcode` se **přesunou** z tiskárny na USB.
+- **📤 Přesun (MOVE)** — na USB je složka `gcode` → všechny `*.gcode` se **přesunou** z tiskárny do té složky (bez ní se nic nepřesouvá).
 - **💾 Záloha** — vložíš USB se složkou `backup` → zazálohuje se `config` a `database`
   do podsložky s datem a časem (staré zálohy se nepřepisují).
 - **🛡️ Ochrana tisku** — když se tiskne, ostatní soubory se přenesou normálně, ale
@@ -142,7 +142,7 @@ k přepsání nebo smazání tištěného souboru.
 ## ✨ Features
 
 - **📥 Copy (COPY)** — insert a USB with `*.gcode` → files are **copied** into the print folder.
-- **📤 Move (MOVE)** — insert an empty USB → all `*.gcode` are **moved** from the printer onto it.
+- **📤 Move (MOVE)** — the USB has a `gcode` folder → all `*.gcode` are **moved** from the printer into that folder (without it, nothing is moved).
 - **💾 Backup** — insert a USB containing a `backup` folder → `config` and `database`
   are backed up into a timestamped subfolder (old backups are never overwritten).
 - **🛡️ Print protection** — while printing, other files transfer normally, but the

@@ -139,8 +139,9 @@ if [ -d "${mnt}/backup" ]; then
     sync
     notify "KUSBH: zaloha hotova"
 
-elif [ -z "$(ls $(echo "${mnt}/${PATTERN}"))" ]; then
-    # NO FILES ON USB, WE MOVE (move gcodes from the printer onto the drive).
+elif [ -d "${mnt}/gcode" ]; then
+    # GCODE FOLDER FOUND -> MOVE gcodes from the printer into that folder on the drive.
+    USB_GCODE="${mnt}/gcode"
     n=0
     if [ "$PRINTING" -eq 1 ]; then
         echo "Moving to USB (print active, keeping '${PBASE}')..." >>/tmp/mountcopy.log
@@ -148,19 +149,24 @@ elif [ -z "$(ls $(echo "${mnt}/${PATTERN}"))" ]; then
         for f in ${DESTINATION}/${PATTERN}; do
             [ -e "$f" ] || continue
             [ "$(basename "$f")" = "$PBASE" ] && continue
-            mv "$f" "$mnt/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba presunu"; exit 105; }
+            mv "$f" "$USB_GCODE/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba presunu"; exit 105; }
             n=$((n + 1))
         done
         notify "KUSBH: presun ${n} (tisk chranen)"
     else
-        echo "Moving to USB..." >>/tmp/mountcopy.log
         n=$(ls -1 $(echo "${DESTINATION}/${PATTERN}") 2>/dev/null | wc -l)
-        notify "KUSBH: presouvam ${n} souboru"
-        mv $(echo "${DESTINATION}/${PATTERN}") "$mnt/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba presunu"; exit 105; }
-        notify "KUSBH: presun hotov (${n})"
+        if [ "$n" -gt 0 ]; then
+            echo "Moving to USB..." >>/tmp/mountcopy.log
+            notify "KUSBH: presouvam ${n} souboru"
+            mv $(echo "${DESTINATION}/${PATTERN}") "$USB_GCODE/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba presunu"; exit 105; }
+            notify "KUSBH: presun hotov (${n})"
+        else
+            echo "Nothing to move (no gcodes in printer)." >>/tmp/mountcopy.log
+            notify "KUSBH: zadne gcody k presunu"
+        fi
     fi
 
-else
+elif [ -n "$(ls $(echo "${mnt}/${PATTERN}") 2>/dev/null)" ]; then
     # FILES FOUND ON USB, WE COPY (copy gcodes from the drive into the printer).
     n=0
     if [ "$PRINTING" -eq 1 ]; then
@@ -183,6 +189,11 @@ else
         cp $(echo "$mnt/$PATTERN") "$DESTINATION/" 2>>/tmp/mountcopy.log || { notify "KUSBH: chyba kopirovani"; exit 102; }
         notify "KUSBH: kopie hotova (${n})"
     fi
+
+else
+    # Nothing to do: no backup folder, no gcode folder, no gcode files on USB.
+    echo "Nothing to do (no backup/gcode folder, no .gcode files)." >>/tmp/mountcopy.log
+    notify "KUSBH: nic k provedeni"
 fi
 
 # Unmount the drives filesystem
